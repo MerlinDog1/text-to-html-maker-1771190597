@@ -154,7 +154,7 @@
           <button class="chip" id="clearBtn" type="button">Clear</button>
         </div>
 
-        <p class="small" style="margin-top:10px">Raw HTML mode can run scripts in the exported file. Use trusted code only.</p>
+        <p class="small" style="margin-top:10px">Raw HTML mode can run scripts in the exported file. Use trusted code only. Full <code>&lt;!doctype html&gt;</code> documents are auto-detected and exported as-is.</p>
       </div>
 
       <div class="panel">
@@ -190,7 +190,14 @@ const previewBody = document.getElementById('previewBody');
 const charsEl = document.getElementById('chars');
 const wordsEl = document.getElementById('words');
 
+function looksLikeFullHtml(text=''){
+  return /<!doctype\s+html/i.test(text) || /<html[\s>]/i.test(text);
+}
+
 function buildHtml(title, text, rawHtml){
+  // If content is already a full HTML document, export it as-is.
+  if (looksLikeFullHtml(text)) return text;
+
   const bodyContent = rawHtml
     ? text
     : `<h1>${esc(title || 'Document')}</h1><div class="content">${esc(text)}</div>`;
@@ -216,8 +223,11 @@ function updatePreview(){
   const text = contentEl.value;
   const title = titleEl.value.trim();
   const raw = rawEl.checked;
+  const autoFullDoc = looksLikeFullHtml(text);
 
-  modeTag.textContent = raw ? 'Raw HTML mode' : 'Escaped text mode';
+  modeTag.textContent = autoFullDoc
+    ? 'Full HTML document detected (auto passthrough on save)'
+    : (raw ? 'Raw HTML mode' : 'Escaped text mode');
   const words = (text.trim().match(/\S+/g) || []).length;
   charsEl.textContent = `${text.length} chars`;
   wordsEl.textContent = `${words} words`;
