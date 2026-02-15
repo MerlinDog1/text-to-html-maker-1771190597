@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Text → HTML Saver</title>
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:900px;margin:20px auto;padding:0 14px;background:#0b1020;color:#e9eeff}
+    .card{background:#121a33;border:1px solid #30406f;border-radius:14px;padding:14px}
+    h1{margin:0 0 8px}
+    p{color:#9db1e6}
+    input,textarea,button{font:inherit}
+    input,textarea{width:100%;background:#0b1330;color:#e9eeff;border:1px solid #364a82;border-radius:10px;padding:10px}
+    textarea{min-height:260px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 180px;gap:8px;margin:10px 0}
+    button{background:#1a3f86;border:1px solid #3f66b2;color:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+    button:hover{filter:brightness(1.08)}
+    .small{font-size:.88rem;color:#9db1e6}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Text → HTML Saver</h1>
+    <p>Paste content, choose a filename, click save. It downloads a full <code>.html</code> file.</p>
+
+    <label class="small" for="title">Page Title</label>
+    <input id="title" placeholder="My Notes Page" />
+
+    <div class="row">
+      <div>
+        <label class="small" for="filename">Filename (without extension)</label>
+        <input id="filename" value="my-page" />
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="saveBtn" style="width:100%">Save as HTML</button>
+      </div>
+    </div>
+
+    <label class="small" for="content">Content</label>
+    <textarea id="content" placeholder="Paste your text here..."></textarea>
+
+    <p class="small">Tip: line breaks are preserved automatically.</p>
+  </div>
+
+<script>
+const esc = (s='') => s
+  .replaceAll('&','&amp;')
+  .replaceAll('<','&lt;')
+  .replaceAll('>','&gt;');
+
+function buildHtml(title, text){
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${esc(title || 'Document')}</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:900px;margin:24px auto;padding:0 14px;line-height:1.5}
+    h1{margin-bottom:14px}
+    .content{white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <h1>${esc(title || 'Document')}</h1>
+  <div class="content">${esc(text)}</div>
+</body>
+</html>`;
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const title = document.getElementById('title').value.trim();
+  const filenameRaw = document.getElementById('filename').value.trim() || 'document';
+  const text = document.getElementById('content').value;
+
+  const filename = filenameRaw.replace(/[^a-zA-Z0-9-_]/g, '-') + '.html';
+  const html = buildHtml(title, text);
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
